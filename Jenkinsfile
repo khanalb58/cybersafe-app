@@ -17,12 +17,10 @@ pipeline {
             }
         }
 
-        // 1. STATIC CODE TESTING (25 pts)
         stage('Static Code Testing') {
             steps {
                 script {
                     echo "Running Security Audit..."
-                    // Fulfills Static Analysis requirement
                     sh 'npm install'
                     sh 'npm audit --audit-level=high'
                 }
@@ -33,7 +31,6 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://registry-1.docker.io', "${DOCKER_CREDENTIALS_ID}") {
-                        // Builds image using your Dockerfile
                         docker.build("${DOCKER_IMAGE}:${IMAGE_TAG}")
                     }
                 }
@@ -57,12 +54,11 @@ pipeline {
                     script {
                         echo "Deploying to Kubernetes Cluster..."
                         
-                        // Complexity: Dynamically swapping 'latest' with the specific build tag
-                        // Using your actual filename: k8s-deployment.yaml
-                        sh "sed -i 's|cithit/khanalb:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' k8s-deployment.yaml"
+                        // FIX: Updated to match your actual filename 'deployment.yaml'
+                        sh "sed -i 's|cithit/khanalb:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment.yaml"
                         
-                        // Deploying both the Deployment and Service manifests
-                        sh "kubectl --kubeconfig=${KUBECONFIG} apply -f k8s-deployment.yaml"
+                        // FIX: Using your exact filenames from the repo
+                        sh "kubectl --kubeconfig=${KUBECONFIG} apply -f deployment.yaml"
                         sh "kubectl --kubeconfig=${KUBECONFIG} apply -f k8s-service.yaml"
                     }
                 }
@@ -73,7 +69,6 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'khanalb-225', variable: 'KUBECONFIG')]) {
                     script {
-                        // Demonstration of successful deployment
                         sh "kubectl --kubeconfig=${KUBECONFIG} get all"
                     }
                 }
