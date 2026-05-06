@@ -22,17 +22,18 @@ pipeline {
             steps {
                 script {
                     echo "Running Security Audit..."
+                    // Fulfills Static Analysis requirement
                     sh 'npm install'
                     sh 'npm audit --audit-level=high'
                 }
             }
         }
 
-        // 2. DOCKER BUILD (25 pts)
         stage('Build Docker Image') {
             steps {
                 script {
                     docker.withRegistry('https://registry-1.docker.io', "${DOCKER_CREDENTIALS_ID}") {
+                        // Builds image using your Dockerfile
                         docker.build("${DOCKER_IMAGE}:${IMAGE_TAG}")
                     }
                 }
@@ -50,19 +51,18 @@ pipeline {
             }
         }
 
-        // 3. DEPLOYED PROJECT & COMPLEXITY (50 pts)
         stage('Deploy to Dev Environment') {
             steps {
-                // Using 'file' type credentials because your Jenkins lacks the K8s plugin
                 withCredentials([file(credentialsId: 'khanalb-225', variable: 'KUBECONFIG')]) {
                     script {
                         echo "Deploying to Kubernetes Cluster..."
                         
-                        // Complexity: Dynamically updating the image tag in the manifest
-                        sh "sed -i 's|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-dev.yaml"
+                        // Complexity: Dynamically swapping 'latest' with the specific build tag
+                        // Using your actual filename: k8s-deployment.yaml
+                        sh "sed -i 's|cithit/khanalb:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' k8s-deployment.yaml"
                         
-                        // Deploying using the provided Kubeconfig file
-                        sh "kubectl --kubeconfig=${KUBECONFIG} apply -f deployment-dev.yaml"
+                        // Deploying both the Deployment and Service manifests
+                        sh "kubectl --kubeconfig=${KUBECONFIG} apply -f k8s-deployment.yaml"
                         sh "kubectl --kubeconfig=${KUBECONFIG} apply -f k8s-service.yaml"
                     }
                 }
@@ -73,6 +73,7 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'khanalb-225', variable: 'KUBECONFIG')]) {
                     script {
+                        // Demonstration of successful deployment
                         sh "kubectl --kubeconfig=${KUBECONFIG} get all"
                     }
                 }
