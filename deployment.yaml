@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cybersafe-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cybersafe
+  template:
+    metadata:
+      labels:
+        app: cybersafe
+    spec:
+      containers:
+      - name: cybersafe-app
+        # This matches the DOCKER_IMAGE variable in your Jenkinsfile
+        image: cithit/khanalb:latest 
+        ports:
+        - containerPort: 3000
